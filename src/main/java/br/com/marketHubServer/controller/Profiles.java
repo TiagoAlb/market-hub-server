@@ -33,6 +33,7 @@ import br.com.marketHubServer.dao.ProfileDAO;
 import br.com.marketHubServer.model.Image;
 import br.com.marketHubServer.model.Marketplace;
 import br.com.marketHubServer.model.Profile;
+import br.com.marketHubServer.model.Session;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -100,6 +101,7 @@ public class Profiles {
             
                 Profile profile = findByIdProfile.get();
                 Marketplace marketplace = findByIdMarketplace.get();
+                marketplace.setLink_date(new Date(System.currentTimeMillis()));
 
                 List<Marketplace> marketplaces = profile.getMarketplaces();
                 marketplaces.add(marketplace);
@@ -113,7 +115,7 @@ public class Profiles {
     @RequestMapping(path = "/profiles/{id}/marketplaces", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Iterable<Marketplace> read(@PathVariable int id, @RequestParam(required = false, defaultValue = "0") int page) throws Exception {
-        PageRequest pageRequest = new PageRequest(page, 10);
+        PageRequest pageRequest = new PageRequest(page, 5);
         return marketplaceDAO.findByProfile(id, pageRequest);
     }
     
@@ -131,6 +133,16 @@ public class Profiles {
                 sign(algorithm);
         HttpHeaders respHeaders = new HttpHeaders();
         respHeaders.set("token", token);
+        
+        Optional<Profile> findByIdProfile = profileDAO.findById(profileAut.getProfile().getId());
+        Profile profile = findByIdProfile.get();
+        List sessions = new ArrayList<Session>();
+        sessions = profile.getSessions();
+        Session session = new Session();
+        session.setExpire_date(expire);
+        sessions.add(session);
+        profile.setSessions(sessions);
+        profileDAO.save(profile);
 
         return new ResponseEntity<>(profileAut.getProfile(), respHeaders, HttpStatus.OK);
     }
