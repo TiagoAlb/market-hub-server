@@ -5,10 +5,14 @@
  */
 package br.com.marketHubServer.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -18,6 +22,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 /**
@@ -60,6 +67,14 @@ public class Profile implements Serializable {
     
     @Column(nullable = false, length = 9)
     private String phoneNumber;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date create_date = new Date(System.currentTimeMillis());
+    
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Session> sessions;
     
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> permissions;
@@ -160,6 +175,22 @@ public class Profile implements Serializable {
         this.phoneNumber = phoneNumber;
     }
 
+    public Date getCreate_date() {
+        return create_date;
+    }
+
+    public void setCreate_date(Date create_date) {
+        this.create_date = create_date;
+    }
+
+    public List<Session> getSessions() {
+        return sessions;
+    }
+
+    public void setSessions(List<Session> sessions) {
+        this.sessions = sessions;
+    }
+    
     public List<String> getPermissions() {
         return permissions;
     }

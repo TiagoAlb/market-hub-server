@@ -5,8 +5,10 @@
  */
 package br.com.marketHubServer.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,6 +17,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
  *
@@ -35,6 +41,14 @@ public class Marketplace implements Serializable {
     @JsonIgnore
     @ManyToMany
     private List<EndPoint> endPoints;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date link_date;
+    
+    @JsonIgnore
+    @OneToMany
+    private List<AccessToken> access;
 
     public int getId() {
         return id;
@@ -66,5 +80,21 @@ public class Marketplace implements Serializable {
 
     public void setEndPoints(List<EndPoint> endPoints) {
         this.endPoints = endPoints;
+    }
+
+    public List<AccessToken> getAccess() {
+        return access;
+    }
+
+    public void setAccess(List<AccessToken> access) {
+        this.access = access;
+    }
+
+    public Date getLink_date() {
+        return link_date;
+    }
+
+    public void setLink_date(Date link_date) {
+        this.link_date = link_date;
     }
 }
