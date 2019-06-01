@@ -21,7 +21,7 @@ import javax.persistence.ManyToMany;
 public class DataSheet implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     
     @ManyToMany
     List<DataSheetItem> items;
@@ -30,7 +30,7 @@ public class DataSheet implements Serializable {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

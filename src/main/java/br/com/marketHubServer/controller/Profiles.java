@@ -91,9 +91,30 @@ public class Profiles {
         return userSave;
     }
     
+    @RequestMapping(path = "/profiles/{profileID}/marketplaces/{marketplaceID}/link", method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.OK)
+    public void linkMarketplace(@PathVariable int profileID, @PathVariable int marketplaceID) throws Exception {
+        if (profileDAO.existsById(profileID) && marketplaceDAO.existsById(marketplaceID)) {
+            if (profileDAO.findMarketplaceByProfile(profileID, marketplaceID) == null) {
+                Optional<Profile> findByIdProfile = profileDAO.findById(profileID);
+                Optional<Marketplace> findByIdMarketplace = marketplaceDAO.findById(marketplaceID);
+            
+                Profile profile = findByIdProfile.get();
+                Marketplace marketplace = findByIdMarketplace.get();
+                marketplace.setLink_date(new Date(System.currentTimeMillis()));
+
+                List<Marketplace> marketplaces = profile.getMarketplaces();
+                marketplaces.add(marketplace);
+            
+                profile.setMarketplaces(marketplaces);
+                profileDAO.save(profile);
+            } else throw new ForbiddenException("Marketplace já vinculado a este perfil!");
+        }
+    }
+    
     @RequestMapping(path = "/profiles/{profileID}/marketplaces/{marketplaceID}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
-    public void update(@PathVariable int profileID, @PathVariable int marketplaceID) throws Exception {
+    public void updateRefreshToken(@PathVariable int profileID, @PathVariable int marketplaceID) throws Exception {
         if (profileDAO.existsById(profileID) && marketplaceDAO.existsById(marketplaceID)) {
             if (profileDAO.findMarketplaceByProfile(profileID, marketplaceID) == null) {
                 Optional<Profile> findByIdProfile = profileDAO.findById(profileID);

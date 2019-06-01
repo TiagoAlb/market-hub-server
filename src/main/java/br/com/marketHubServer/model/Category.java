@@ -23,7 +23,7 @@ import javax.persistence.Id;
 public class Category implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     
     @Column(length = 50)
     private String type;
@@ -35,7 +35,7 @@ public class Category implements Serializable {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

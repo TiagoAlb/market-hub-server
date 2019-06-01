@@ -35,7 +35,7 @@ import javax.persistence.Transient;
 public class Profile implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(nullable = false, length = 30)
     private String type = "Profile";
@@ -91,7 +91,7 @@ public class Profile implements Serializable {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

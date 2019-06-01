@@ -23,7 +23,7 @@ import javax.persistence.Lob;
 public class Image implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     
     @Lob()
     @Basic(fetch = FetchType.EAGER)
@@ -40,7 +40,7 @@ public class Image implements Serializable {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

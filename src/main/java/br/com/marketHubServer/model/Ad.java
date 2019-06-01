@@ -23,7 +23,7 @@ import javax.persistence.ManyToOne;
 public class Ad implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(length = 5000)
     private String description;
@@ -41,7 +41,7 @@ public class Ad implements Serializable {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

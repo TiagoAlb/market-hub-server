@@ -23,7 +23,7 @@ import javax.persistence.Id;
 public class EndPoint implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     
     @Column(length = 500)
     private String url;
@@ -38,7 +38,7 @@ public class EndPoint implements Serializable {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

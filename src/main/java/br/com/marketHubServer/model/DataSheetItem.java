@@ -20,7 +20,7 @@ import javax.persistence.Id;
 public class DataSheetItem implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     
     @Column(length = 100)
     private String description;
@@ -35,7 +35,7 @@ public class DataSheetItem implements Serializable {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

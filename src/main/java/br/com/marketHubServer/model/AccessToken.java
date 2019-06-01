@@ -24,9 +24,7 @@ import javax.persistence.TemporalType;
 public class AccessToken implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    
-    private Integer user_id;
+    private Integer id;
 
     @Column(length = 100)
     private String access_token;
@@ -47,7 +45,7 @@ public class AccessToken implements Serializable {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
     

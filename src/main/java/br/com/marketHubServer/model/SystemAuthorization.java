@@ -20,7 +20,7 @@ import javax.persistence.Id;
 public class SystemAuthorization implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     
     @Column(nullable = false, length = 400)
     private String description;
@@ -29,7 +29,7 @@ public class SystemAuthorization implements Serializable {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

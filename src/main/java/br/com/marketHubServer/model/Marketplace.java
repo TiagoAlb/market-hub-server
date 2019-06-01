@@ -30,7 +30,7 @@ import javax.persistence.TemporalType;
 public class Marketplace implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     
     @Column(nullable = false, length = 100)
     private String name = "MarketPlace";
@@ -42,19 +42,19 @@ public class Marketplace implements Serializable {
     @ManyToMany
     private List<EndPoint> endPoints;
     
+    @JsonIgnore
+    @ManyToMany
+    private List<MarketplaceAuthorization> authorizations;
+    
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Temporal(TemporalType.TIMESTAMP)
     private Date link_date;
-    
-    @JsonIgnore
-    @OneToMany
-    private List<AccessToken> access;
 
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -82,14 +82,14 @@ public class Marketplace implements Serializable {
         this.endPoints = endPoints;
     }
 
-    public List<AccessToken> getAccess() {
-        return access;
+    public List<MarketplaceAuthorization> getAuthorizations() {
+        return authorizations;
     }
 
-    public void setAccess(List<AccessToken> access) {
-        this.access = access;
+    public void setAuthorization(List<MarketplaceAuthorization> authorizations) {
+        this.authorizations = authorizations;
     }
-
+    
     public Date getLink_date() {
         return link_date;
     }
