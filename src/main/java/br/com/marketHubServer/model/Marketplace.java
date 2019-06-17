@@ -86,8 +86,8 @@ public class Marketplace implements Serializable {
         return authorizations;
     }
 
-    public void setAuthorization(List<MarketplaceAuthorization> authorizations) {
-        this.authorizations = authorizations;
+    public void setAuthorization(List<MarketplaceAuthorization> authorization) {
+        this.authorizations = authorization;
     }
     
     public Date getLink_date() {

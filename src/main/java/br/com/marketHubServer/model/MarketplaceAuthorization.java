@@ -25,13 +25,10 @@ public class MarketplaceAuthorization implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     
-    private Integer user_id;
+    private Integer profile_id;
 
     @Column(length = 100)
     private String authorization_code;
-
-    @Column(length = 100)
-    private String refresh_token;
 
     @ManyToMany
     private List<AccessToken> access;
@@ -44,14 +41,6 @@ public class MarketplaceAuthorization implements Serializable {
         this.id = id;
     }
 
-    public Integer getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(Integer user_id) {
-        this.user_id = user_id;
-    }
-
     public String getAuthorization_code() {
         return authorization_code;
     }
@@ -60,14 +49,14 @@ public class MarketplaceAuthorization implements Serializable {
         this.authorization_code = authorization_code;
     }
 
-    public String getRefresh_token() {
-        return refresh_token;
+    public Integer getProfile_id() {
+        return profile_id;
     }
 
-    public void setRefresh_token(String refresh_token) {
-        this.refresh_token = refresh_token;
+    public void setProfile_id(Integer profile_id) {
+        this.profile_id = profile_id;
     }
-
+    
     public List<AccessToken> getAccess() {
         return access;
     }

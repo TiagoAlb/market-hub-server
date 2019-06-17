@@ -7,7 +7,9 @@ package br.com.marketHubServer.controller;
 
 import br.com.marketHubServer.aut.ForbiddenException;
 import br.com.marketHubServer.aut.ProfileAut;
+import br.com.marketHubServer.dao.AccessTokenDAO;
 import br.com.marketHubServer.dao.ImageDAO;
+import br.com.marketHubServer.dao.MarketplaceAuthorizationDAO;
 import br.com.marketHubServer.dao.MarketplaceDAO;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,21 +32,33 @@ import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import br.com.marketHubServer.dao.ProfileDAO;
+import br.com.marketHubServer.model.AccessToken;
 import br.com.marketHubServer.model.Image;
 import br.com.marketHubServer.model.Marketplace;
+import br.com.marketHubServer.model.MarketplaceAuthorization;
 import br.com.marketHubServer.model.Profile;
 import br.com.marketHubServer.model.Session;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import static java.lang.System.out;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import org.json.JSONObject;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import sun.net.www.http.HttpClient;
 /**
  *
  * @author Tiago Albuquerque
@@ -69,6 +83,10 @@ public class Profiles {
     ProfileDAO profileDAO;
     @Autowired
     MarketplaceDAO marketplaceDAO;
+    @Autowired
+    MarketplaceAuthorizationDAO marketplaceAuthorizationDAO;
+    @Autowired
+    AccessTokenDAO accessTokenDAO;
     @Autowired
     ImageDAO imageDAO;
 
@@ -112,24 +130,79 @@ public class Profiles {
         }
     }
     
-    @RequestMapping(path = "/profiles/{profileID}/marketplaces/{marketplaceID}", method = RequestMethod.PUT)
+    @RequestMapping(path = "/profiles/{profileID}/marketplaces/{marketplaceID}/authorization", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
-    public void updateRefreshToken(@PathVariable int profileID, @PathVariable int marketplaceID) throws Exception {
+    public void updateAuthorizationCode(@PathVariable int profileID, @PathVariable int marketplaceID, @RequestBody String authorization_code) throws Exception {
+        System.out.println("Veio pra cá"+authorization_code);
         if (profileDAO.existsById(profileID) && marketplaceDAO.existsById(marketplaceID)) {
-            if (profileDAO.findMarketplaceByProfile(profileID, marketplaceID) == null) {
-                Optional<Profile> findByIdProfile = profileDAO.findById(profileID);
+            System.out.println("AQUI1");
+            if (profileDAO.findMarketplaceByProfile(profileID, marketplaceID) != null) {
+                System.out.println("AQU2");
                 Optional<Marketplace> findByIdMarketplace = marketplaceDAO.findById(marketplaceID);
-            
-                Profile profile = findByIdProfile.get();
                 Marketplace marketplace = findByIdMarketplace.get();
-                marketplace.setLink_date(new Date(System.currentTimeMillis()));
+                
+                Integer authorizationID = marketplaceAuthorizationDAO.findAuthorizationByProfileAndMarketplace(profileID, marketplaceID);
+                
+                if(authorizationID!=null) {
+                    marketplaceAuthorizationDAO.deleteById(authorizationID);
+                }
+       
+                URL url = new URL("https://api.mercadolibre.com/oauth/token");
+                JSONObject access = new JSONObject();
+                access.put("grant_type","authorization_code");
+                access.put("client_id","3919471605726765");
+                access.put("client_secret","zLx9hx8EMQMzSlUYIPzKy97CocfdywxZ");
+                access.put("code",authorization_code.replaceAll("\"", ""));
+                access.put("redirect_uri","http://localhost:3000/#/marketplaces/MLBR001/login?authentication=true");
+                
+                HttpURLConnection http = (HttpURLConnection)url.openConnection();
+                http.setRequestMethod("POST"); // PUT is another valid option
+                http.setDoOutput(true);
+                http.setRequestProperty("Content-Type", "application/json; utf-8");
+                http.setRequestProperty("Accept", "application/json");
+                http.connect();
+                
+                try(OutputStream os = http.getOutputStream()) {
+                    byte[] input = access.toString().getBytes("utf-8");
+                    os.write(input, 0, input.length);           
+                }
+                
+                try(BufferedReader br = new BufferedReader(
+                    new InputStreamReader(http.getInputStream(), "utf-8"))) {
+                      StringBuilder response = new StringBuilder();
+                      String responseLine = null;
+                      while ((responseLine = br.readLine()) != null) {
+                          response.append(responseLine.trim());
+                      }
+                      JSONObject responseJSON = new JSONObject(response.toString());
+                      
+                      MarketplaceAuthorization auth = new MarketplaceAuthorization();
+                
+                      auth.setId(0);
+                      auth.setProfile_id(profileID);
+                      auth.setAuthorization_code(authorization_code);
+                      
+                      List<AccessToken> access_token = new ArrayList<>();
+                      AccessToken token = new AccessToken();
+                      token.setId(0);
+                      token.setAccess_token(responseJSON.get("access_token").toString());
+                      token.setToken_type(responseJSON.get("token_type").toString());
+                      token.setExpires_in(Integer.getInteger(responseJSON.get("expires_in").toString()));
+                      token.setScope(responseJSON.get("scope").toString());
+                      access_token.add(token);
+                      
+                      accessTokenDAO.save(token);
+                      
+                      auth.setAccess(access_token);
+                      
+                      marketplaceAuthorizationDAO.save(auth);
+                }
+                
+               
+               
+                
 
-                List<Marketplace> marketplaces = profile.getMarketplaces();
-                marketplaces.add(marketplace);
-            
-                profile.setMarketplaces(marketplaces);
-                profileDAO.save(profile);
-            } else throw new ForbiddenException("Marketplace já vinculado a este perfil!");
+            } else throw new ForbiddenException("Marketplace não vinculado a este perfil!");
         }
     }
     
@@ -145,12 +218,12 @@ public class Profiles {
             throws IllegalArgumentException, UnsupportedEncodingException {
         Algorithm algorithm = Algorithm.HMAC256(SECRET);
         Calendar today = Calendar.getInstance();
-        today.add(Calendar.HOUR, 24);
+        today.add(Calendar.HOUR, 6);
         Date expire = today.getTime();
 
         String token = JWT.create()
                 .withClaim("id", profileAut.getProfile().getId()).
-                               //withExpiresAt(expire).
+                            withExpiresAt(expire).
                 sign(algorithm);
         HttpHeaders respHeaders = new HttpHeaders();
         respHeaders.set("token", token);

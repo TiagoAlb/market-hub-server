@@ -37,6 +37,9 @@ public class AccessToken implements Serializable {
     @Column(length = 50)
     private String scope;
     
+    @Column(length = 100)
+    private String refresh_token;
+    
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Temporal(TemporalType.TIMESTAMP)
     private Date login_date = new Date(System.currentTimeMillis());
@@ -79,6 +82,14 @@ public class AccessToken implements Serializable {
 
     public void setScope(String scope) {
         this.scope = scope;
+    }
+
+    public String getRefresh_token() {
+        return refresh_token;
+    }
+
+    public void setRefresh_token(String refresh_token) {
+        this.refresh_token = refresh_token;
     }
 
     public Date getLogin_date() {
