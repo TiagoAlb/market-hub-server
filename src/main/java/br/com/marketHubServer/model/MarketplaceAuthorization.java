@@ -5,7 +5,9 @@
  */
 package br.com.marketHubServer.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,6 +16,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
  *
@@ -32,6 +36,10 @@ public class MarketplaceAuthorization implements Serializable {
 
     @ManyToMany
     private List<AccessToken> access;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date login_date = new Date(System.currentTimeMillis());
 
     public Integer getId() {
         return id;
@@ -64,6 +72,12 @@ public class MarketplaceAuthorization implements Serializable {
     public void setAccess(List<AccessToken> access) {
         this.access = access;
     }
-    
-    
+
+    public Date getLogin_date() {
+        return login_date;
+    }
+
+    public void setLogin_date(Date login_date) {
+        this.login_date = login_date;
+    }
 }

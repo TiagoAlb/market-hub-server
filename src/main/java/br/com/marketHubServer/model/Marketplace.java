@@ -21,6 +21,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
 /**
  *
@@ -43,7 +45,8 @@ public class Marketplace implements Serializable {
     private List<EndPoint> endPoints;
     
     @JsonIgnore
-    @ManyToMany
+    @OneToMany 
+    @Cascade(value = {CascadeType.DELETE, CascadeType.SAVE_UPDATE})
     private List<MarketplaceAuthorization> authorizations;
     
     @JsonFormat(pattern = "yyyy-MM-dd")

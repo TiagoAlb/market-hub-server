@@ -133,75 +133,81 @@ public class Profiles {
     @RequestMapping(path = "/profiles/{profileID}/marketplaces/{marketplaceID}/authorization", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     public void updateAuthorizationCode(@PathVariable int profileID, @PathVariable int marketplaceID, @RequestBody String authorization_code) throws Exception {
-        System.out.println("Veio pra cá"+authorization_code);
         if (profileDAO.existsById(profileID) && marketplaceDAO.existsById(marketplaceID)) {
-            System.out.println("AQUI1");
             if (profileDAO.findMarketplaceByProfile(profileID, marketplaceID) != null) {
-                System.out.println("AQU2");
                 Optional<Marketplace> findByIdMarketplace = marketplaceDAO.findById(marketplaceID);
                 Marketplace marketplace = findByIdMarketplace.get();
+                System.out.println("ENTROU AQUI "+authorization_code);
+                if(authorization_code!=null && authorization_code.equals("cancelToken")) {
+                    Integer authorizationID = marketplaceAuthorizationDAO.findAuthorizationByProfileAndMarketplace(profileID, marketplaceID);
+                    System.out.println("ENTROU AQUI PRA DELETAR "+authorizationID);
+                    if(authorizationID!=null)
+                        marketplaceAuthorizationDAO.deleteById(authorizationID);  
+                } else {
                 
-                Integer authorizationID = marketplaceAuthorizationDAO.findAuthorizationByProfileAndMarketplace(profileID, marketplaceID);
-                
-                if(authorizationID!=null) {
-                    marketplaceAuthorizationDAO.deleteById(authorizationID);
-                }
-       
-                URL url = new URL("https://api.mercadolibre.com/oauth/token");
-                JSONObject access = new JSONObject();
-                access.put("grant_type","authorization_code");
-                access.put("client_id","3919471605726765");
-                access.put("client_secret","zLx9hx8EMQMzSlUYIPzKy97CocfdywxZ");
-                access.put("code",authorization_code.replaceAll("\"", ""));
-                access.put("redirect_uri","http://localhost:3000/#/marketplaces/MLBR001/login?authentication=true");
-                
-                HttpURLConnection http = (HttpURLConnection)url.openConnection();
-                http.setRequestMethod("POST"); // PUT is another valid option
-                http.setDoOutput(true);
-                http.setRequestProperty("Content-Type", "application/json; utf-8");
-                http.setRequestProperty("Accept", "application/json");
-                http.connect();
-                
-                try(OutputStream os = http.getOutputStream()) {
-                    byte[] input = access.toString().getBytes("utf-8");
-                    os.write(input, 0, input.length);           
-                }
-                
-                try(BufferedReader br = new BufferedReader(
-                    new InputStreamReader(http.getInputStream(), "utf-8"))) {
-                      StringBuilder response = new StringBuilder();
-                      String responseLine = null;
-                      while ((responseLine = br.readLine()) != null) {
-                          response.append(responseLine.trim());
-                      }
-                      JSONObject responseJSON = new JSONObject(response.toString());
-                      
-                      MarketplaceAuthorization auth = new MarketplaceAuthorization();
-                
-                      auth.setId(0);
-                      auth.setProfile_id(profileID);
-                      auth.setAuthorization_code(authorization_code);
-                      
-                      List<AccessToken> access_token = new ArrayList<>();
-                      AccessToken token = new AccessToken();
-                      token.setId(0);
-                      token.setAccess_token(responseJSON.get("access_token").toString());
-                      token.setToken_type(responseJSON.get("token_type").toString());
-                      token.setExpires_in(Integer.getInteger(responseJSON.get("expires_in").toString()));
-                      token.setScope(responseJSON.get("scope").toString());
-                      access_token.add(token);
-                      
-                      accessTokenDAO.save(token);
-                      
-                      auth.setAccess(access_token);
-                      
-                      marketplaceAuthorizationDAO.save(auth);
-                }
-                
-               
-               
-                
+                    /*
+                    Integer authorizationID = marketplaceAuthorizationDAO.findAuthorizationByProfileAndMarketplace(profileID, marketplaceID);
 
+                    if(authorizationID!=null) {
+                        marketplaceAuthorizationDAO.deleteById(authorizationID);
+                    }*/
+
+                    URL url = new URL("https://api.mercadolibre.com/oauth/token");
+                    JSONObject access = new JSONObject();
+                    access.put("grant_type","authorization_code");
+                    access.put("client_id","3919471605726765");
+                    access.put("client_secret","zLx9hx8EMQMzSlUYIPzKy97CocfdywxZ");
+                    access.put("code",authorization_code.replaceAll("\"", ""));
+                    access.put("redirect_uri","http://localhost:3000/#/marketplaces/MLBR001/login?authentication=true");
+
+                    HttpURLConnection http = (HttpURLConnection)url.openConnection();
+                    http.setRequestMethod("POST"); 
+                    http.setDoOutput(true);
+                    http.setRequestProperty("Content-Type", "application/json; utf-8");
+                    http.setRequestProperty("Accept", "application/json");
+                    http.connect();
+
+                    try(OutputStream os = http.getOutputStream()) {
+                        byte[] input = access.toString().getBytes("utf-8");
+                        os.write(input, 0, input.length);           
+                    }
+
+                    try(BufferedReader br = new BufferedReader(
+                        new InputStreamReader(http.getInputStream(), "utf-8"))) {
+                          StringBuilder response = new StringBuilder();
+                          String responseLine = null;
+                          while ((responseLine = br.readLine()) != null) {
+                              response.append(responseLine.trim());
+                          }
+                          JSONObject responseJSON = new JSONObject(response.toString());
+
+                          MarketplaceAuthorization auth = new MarketplaceAuthorization();
+
+                          auth.setId(0);
+                          auth.setProfile_id(profileID);
+                          auth.setAuthorization_code(authorization_code);
+
+                          List<AccessToken> access_token = new ArrayList<>();
+                          List<MarketplaceAuthorization> authorization = marketplace.getAuthorizations();
+                          AccessToken token = new AccessToken();
+                          token.setId(0);
+                          token.setAccess_token(responseJSON.get("access_token").toString());
+                          token.setToken_type(responseJSON.get("token_type").toString());
+                          token.setExpires_in(Integer.valueOf(responseJSON.get("expires_in").toString()));
+                          token.setScope(responseJSON.get("scope").toString());
+                          token.setRefresh_token(responseJSON.get("refresh_token").toString());
+
+                          access_token.add(accessTokenDAO.save(token));
+                          auth.setAccess(access_token);
+
+                          authorization.add(marketplaceAuthorizationDAO.save(auth));
+                          marketplace.setAuthorization(authorization);
+                          marketplaceDAO.save(marketplace);
+
+
+
+                    }
+                }
             } else throw new ForbiddenException("Marketplace não vinculado a este perfil!");
         }
     }

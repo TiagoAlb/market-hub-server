@@ -19,7 +19,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MarketplaceDAO extends PagingAndSortingRepository<Marketplace, Integer> {
     //@Query(value = "SELECT * FROM marketplace JOIN profile_marketplaces ON profile_marketplaces.marketplaces_id = marketplace.id WHERE profile_marketplaces.profile_id = :id", nativeQuery = true)
-    @Query("SELECT marketplace FROM Profile profile JOIN profile.marketplaces marketplace")
+    @Query("SELECT marketplace FROM Profile profile JOIN profile.marketplaces marketplace WHERE profile.id = :id")
     public Page<Marketplace> findByProfile(@Param("id") int id, Pageable pageable);
     @Query(value = "SELECT * FROM marketplace WHERE marketplace.id NOT IN (SELECT profile_marketplaces.marketplaces_id FROM profile_marketplaces WHERE profile_marketplaces.profile_id = :id) ORDER BY marketplace.name", nativeQuery = true)
     public List<Marketplace> findAvailable(@Param("id") int id);
