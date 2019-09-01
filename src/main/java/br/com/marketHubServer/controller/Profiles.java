@@ -203,9 +203,6 @@ public class Profiles {
                           authorization.add(marketplaceAuthorizationDAO.save(auth));
                           marketplace.setAuthorization(authorization);
                           marketplaceDAO.save(marketplace);
-
-
-
                     }
                 }
             } else throw new ForbiddenException("Marketplace não vinculado a este perfil!");
