@@ -65,7 +65,7 @@ public class Profile implements Serializable {
     @Column(nullable = false, length = 14)
     private String cnpjCpf;
     
-    @Column(nullable = false, length = 9)
+    @Column(nullable = false, length = 11)
     private String phoneNumber;
     
     @JsonFormat(pattern = "yyyy-MM-dd")

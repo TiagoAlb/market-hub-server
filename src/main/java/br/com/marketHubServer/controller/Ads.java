@@ -9,6 +9,7 @@ import br.com.marketHubServer.aut.ProfileAut;
 import br.com.marketHubServer.model.AccessToken;
 import br.com.marketHubServer.model.MarketplaceAuthorization;
 import br.com.marketHubServer.model.Profile;
+import br.com.marketHubServer.util.Util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -21,6 +22,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,13 +47,21 @@ public class Ads {
     @Autowired
     private ObjectMapper objectMapper;
     
-    @RequestMapping(path = "/profiles/marketplaces/ads/category/search", method = RequestMethod.GET)
+    private Util util;
+    
+    @RequestMapping(path = "/profiles/marketplaces/ads/category", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<JsonNode> categorySearch(@RequestParam(required = false) String title) throws JSONException, IOException {
-        title = title.replace(" ", "%20");
-        
-        System.out.println(title);
-        URL url = new URL("https://api.mercadolibre.com/sites/MLB/category_predictor/predict?title="+title);
+    public ResponseEntity<JsonNode> categorySearch(@RequestParam(required = false) String category, @RequestParam(required = false) String name) throws JSONException, IOException {
+        URL url;
+
+        if(name==null)
+            name="";
+        if(category==null)
+            category="";
+        if(!category.equals(""))
+            url = new URL("https://api.mercadolibre.com/categories/"+category);
+        else
+            url = new URL("https://api.mercadolibre.com/sites/MLB/categories");
         HttpURLConnection http = (HttpURLConnection)url.openConnection();
         http.setRequestMethod("GET"); 
         http.setDoOutput(true);
@@ -68,9 +78,70 @@ public class Ads {
                     while ((responseLine = br.readLine()) != null) {
                         response.append(responseLine.trim());
                     }
-                    jsonNode = objectMapper.readTree(response.toString());
+                    
+                    JSONArray jsonArray;
+                    
+                    if(!category.equals("")) 
+                        jsonArray = new JSONArray(objectMapper.readTree(response.toString()).get("children_categories").toString());
+                    else
+                        jsonArray = new JSONArray(objectMapper.readTree(response.toString()).toString());
+                        
+                    JSONArray categoryArray = new JSONArray();
+                    for(int i=0; i < jsonArray.length(); i++) {
+                        JSONObject objJson = new JSONObject(jsonArray.get(i).toString());
+                        
+                        if(!category.equals("")) 
+                            objJson.remove("total_items_in_this_category");
+
+                        if(name.equals("") || objJson.getString("name").toLowerCase().contains(name.toLowerCase()))
+                            categoryArray.put(objJson);
+                    }
+                        jsonNode = objectMapper.readTree(categoryArray.toString()); 
                 }
         
+        return new ResponseEntity<JsonNode>(jsonNode, HttpStatus.OK);
+    }
+    
+    @RequestMapping(path = "/profiles/marketplaces/ads/category/search", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<JsonNode> categoryNavSearch(@RequestParam(required = false) String title, @RequestParam(required = false) String category) throws JSONException, IOException {
+        title = title.replace(" ", "%20");
+        
+        if(category==null)
+            category = "";
+        URL url = new URL("https://api.mercadolibre.com/sites/MLB/category_predictor/predict?title="+title+(!category.equals("")?"&category_from="+category:""));
+        HttpURLConnection http = (HttpURLConnection)url.openConnection();
+        http.setRequestMethod("GET"); 
+        http.setDoOutput(true);
+        http.setRequestProperty("Content-Type", "application/json; utf-8");
+        http.setRequestProperty("Accept", "application/json");
+        http.connect();
+
+        JsonNode jsonNode;
+        
+        try(BufferedReader br = new BufferedReader(
+            new InputStreamReader(http.getInputStream(), "utf-8"))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine = null;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+
+                JSONArray jsonArray = new JSONArray(objectMapper.readTree(response.toString()).get("path_from_root").toString());
+                JSONArray categoryArray = new JSONArray();
+                for(int i=0; i < jsonArray.length(); i++) {
+                    JSONObject objJson = new JSONObject(jsonArray.get(i).toString());
+                    
+                    double prediction_probability = objJson.getDouble("prediction_probability");
+                    objJson.remove("prediction_probability");
+                    
+                    if(prediction_probability > 0.5)
+                        categoryArray.put(objJson);
+                }
+                
+                jsonNode = objectMapper.readTree(categoryArray.toString());
+            }
+           
         return new ResponseEntity<JsonNode>(jsonNode, HttpStatus.OK);
     }
     
