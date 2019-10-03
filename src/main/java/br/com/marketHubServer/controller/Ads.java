@@ -49,7 +49,7 @@ public class Ads {
     
     private Util util;
     
-    @RequestMapping(path = "/profiles/marketplaces/ads/category", method = RequestMethod.GET)
+    @RequestMapping(path = "/ads/categories", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<JsonNode> categorySearch(@RequestParam(required = false) String category, @RequestParam(required = false) String name) throws JSONException, IOException {
         URL url;
@@ -102,14 +102,19 @@ public class Ads {
         return new ResponseEntity<JsonNode>(jsonNode, HttpStatus.OK);
     }
     
-    @RequestMapping(path = "/profiles/marketplaces/ads/category/search", method = RequestMethod.GET)
+    @RequestMapping(path = "/ads/category/search", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<JsonNode> categoryNavSearch(@RequestParam(required = false) String title, @RequestParam(required = false) String category) throws JSONException, IOException {
+    public ResponseEntity<JsonNode> categoryNavSearch(@RequestParam(required = false, defaultValue = "") String title, @RequestParam(required = false, defaultValue = "") String category) throws JSONException, IOException {
         title = title.replace(" ", "%20");
         
-        if(category==null)
-            category = "";
-        URL url = new URL("https://api.mercadolibre.com/sites/MLB/category_predictor/predict?title="+title+(!category.equals("")?"&category_from="+category:""));
+        URL url; 
+        
+        if(title.equals("") && category.equals(""))
+            url = new URL("https://api.mercadolibre.com/sites/MLB/categories");
+        else if(title.equals(""))
+            url = new URL("https://api.mercadolibre.com/sites/MLB/category_predictor/predict?category_from="+category);
+        else
+            url = new URL("https://api.mercadolibre.com/sites/MLB/category_predictor/predict?title="+title);
         HttpURLConnection http = (HttpURLConnection)url.openConnection();
         http.setRequestMethod("GET"); 
         http.setDoOutput(true);
@@ -126,20 +131,27 @@ public class Ads {
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
                 }
+           
+                if(!title.equals("") || !category.equals("")) {
+                    JSONArray jsonArray = new JSONArray(objectMapper.readTree(response.toString()).get("path_from_root").toString());
+                    
+                    JSONArray categoryArray = new JSONArray();
+                    for(int i=0; i < jsonArray.length(); i++) {
+                        JSONObject objJson = new JSONObject(jsonArray.get(i).toString());
 
-                JSONArray jsonArray = new JSONArray(objectMapper.readTree(response.toString()).get("path_from_root").toString());
-                JSONArray categoryArray = new JSONArray();
-                for(int i=0; i < jsonArray.length(); i++) {
-                    JSONObject objJson = new JSONObject(jsonArray.get(i).toString());
-                    
-                    double prediction_probability = objJson.getDouble("prediction_probability");
-                    objJson.remove("prediction_probability");
-                    
-                    if(prediction_probability > 0.5)
-                        categoryArray.put(objJson);
+                        double prediction_probability = objJson.getDouble("prediction_probability");
+                        objJson.remove("prediction_probability");
+
+                        if(prediction_probability > 0.5)
+                            categoryArray.put(objJson);
+                    }
+
+                    jsonNode = objectMapper.readTree(categoryArray.toString());
+                } else {
+                    jsonNode = objectMapper.readTree(response.toString());
                 }
                 
-                jsonNode = objectMapper.readTree(categoryArray.toString());
+                
             }
            
         return new ResponseEntity<JsonNode>(jsonNode, HttpStatus.OK);
