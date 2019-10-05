@@ -6,8 +6,16 @@
 package br.com.marketHubServer.controller;
 
 import br.com.marketHubServer.aut.ProfileAut;
+import br.com.marketHubServer.dao.AdDAO;
+import br.com.marketHubServer.dao.DataSheetDAO;
+import br.com.marketHubServer.dao.DataSheetItemDAO;
+import br.com.marketHubServer.dao.ProductDAO;
 import br.com.marketHubServer.model.AccessToken;
+import br.com.marketHubServer.model.Ad;
+import br.com.marketHubServer.model.DataSheet;
+import br.com.marketHubServer.model.DataSheetItem;
 import br.com.marketHubServer.model.MarketplaceAuthorization;
+import br.com.marketHubServer.model.Product;
 import br.com.marketHubServer.model.Profile;
 import br.com.marketHubServer.util.Util;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,6 +34,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -46,8 +55,34 @@ import org.springframework.web.bind.annotation.RestController;
 public class Ads {
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    AdDAO adDAO;
+    @Autowired
+    ProductDAO productDAO;
+    @Autowired
+    DataSheetDAO dataSheetDAO;
+    @Autowired
+    DataSheetItemDAO dataSheetItemDAO;
     
     private Util util;
+    
+    @RequestMapping(path = "/ads", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.CREATED)
+    public Ad create(@RequestBody Ad ad) throws Exception {
+        Product product = ad.getProduct();
+        DataSheet dataSheet = product.getDataSheet();
+        dataSheet.setItems((List<DataSheetItem>) dataSheetItemDAO.saveAll(dataSheet.getItems()));
+        product.setDataSheet(dataSheetDAO.save(dataSheet));
+        ad.setProduct(productDAO.save(product));
+        
+        return adDAO.save(ad);
+    }
+    
+    @RequestMapping(path = "/ads", method = RequestMethod.GET)
+    public Iterable<Ad> read(@RequestParam(required = false, defaultValue = "0") int page) {
+        PageRequest pageRequest = new PageRequest(page, 10);
+        return adDAO.findAll(pageRequest);
+    }
     
     @RequestMapping(path = "/ads/categories", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
