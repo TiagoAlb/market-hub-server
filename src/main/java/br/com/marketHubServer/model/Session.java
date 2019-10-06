@@ -25,11 +25,11 @@ public class Session implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd : HH:mm:ss")
     @Temporal(TemporalType.TIMESTAMP)
     private Date login_date = new Date(System.currentTimeMillis());
     
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd : HH:mm:ss")
     @Temporal(TemporalType.TIMESTAMP)
     private Date expire_date;
 

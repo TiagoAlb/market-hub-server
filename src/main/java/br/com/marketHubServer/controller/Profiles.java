@@ -32,6 +32,7 @@ import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import br.com.marketHubServer.dao.ProfileDAO;
+import br.com.marketHubServer.dao.SessionDAO;
 import br.com.marketHubServer.model.AccessToken;
 import br.com.marketHubServer.model.Image;
 import br.com.marketHubServer.model.Marketplace;
@@ -84,6 +85,8 @@ public class Profiles {
     @Autowired
     MarketplaceDAO marketplaceDAO;
     @Autowired
+    SessionDAO sessionDAO;
+    @Autowired
     MarketplaceAuthorizationDAO marketplaceAuthorizationDAO;
     @Autowired
     AccessTokenDAO accessTokenDAO;
@@ -107,6 +110,15 @@ public class Profiles {
         }
         Profile userSave = profileDAO.save(profile);
         return userSave;
+    }
+    
+    @RequestMapping(path = "/profiles/marketplaces/available/{id}", method = RequestMethod.GET)
+    public Iterable<Marketplace> marketPlacesAvailable(@AuthenticationPrincipal ProfileAut profileAut, @PathVariable int id) {
+        if (id != 0) {
+            return marketplaceDAO.findAvailable(id);
+        } else {
+            return marketplaceDAO.findAll();
+        }
     }
     
     @RequestMapping(path = "/profiles/{profileID}/marketplaces/{marketplaceID}/link", method = RequestMethod.PUT)
@@ -212,8 +224,28 @@ public class Profiles {
     @RequestMapping(path = "/profiles/{id}/marketplaces", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Iterable<Marketplace> read(@PathVariable int id, @RequestParam(required = false, defaultValue = "0") int page) throws Exception {
-        PageRequest pageRequest = new PageRequest(page, 5);
+        PageRequest pageRequest = new PageRequest(page, 10);
         return marketplaceDAO.findByProfile(id, pageRequest);
+    }
+    
+    @RequestMapping(path = "/profiles", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Iterable<Profile> read(@AuthenticationPrincipal ProfileAut profileAut, @RequestParam(required = false, defaultValue = "0") int page) throws Exception {
+        PageRequest pageRequest = new PageRequest(page, 10);
+        if(profileAut.getProfile().getPermissions().contains("admin"))
+            return profileDAO.findAll(pageRequest);
+        else
+            throw new ForbiddenException("Acesso Negado.");
+    }
+    
+    @RequestMapping(path = "/profiles/{id}/sessions", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Iterable<Session> profileSessions(@AuthenticationPrincipal ProfileAut profileAut, @PathVariable int id, @RequestParam(required = false, defaultValue = "0") int page) throws Exception {
+        PageRequest pageRequest = new PageRequest(page, 10);
+        if(profileAut.getProfile().getPermissions().contains("admin"))
+            return sessionDAO.findByProfile(id, pageRequest);
+        else
+            throw new ForbiddenException("Acesso Negado.");
     }
     
     @RequestMapping(path = "/profiles/login", method = RequestMethod.GET)

@@ -68,7 +68,7 @@ public class Profile implements Serializable {
     @Column(nullable = false, length = 11)
     private String phoneNumber;
     
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd@HH:mm:ss.SSSZ")
     @Temporal(TemporalType.TIMESTAMP)
     private Date create_date = new Date(System.currentTimeMillis());
     

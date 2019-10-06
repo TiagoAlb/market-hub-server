@@ -54,6 +54,10 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/profiles").permitAll()
                 .antMatchers(HttpMethod.PUT, "/api/profiles/{id}/image").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/profiles/login/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/marketplaces/").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/marketplaces/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/ads/").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/ads/**").permitAll()
                 .antMatchers("/api/**").authenticated()
                 .and().httpBasic()
                 .and().addFilterBefore(new TokenBasedAuthorizationFilter(profileDAO), 

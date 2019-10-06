@@ -27,17 +27,17 @@ public class Product implements Serializable {
     
     @Column(nullable = false, length = 50)
     private String name;
-   
+    
     @ManyToOne
     private DataSheet dataSheet;
     
     @ManyToOne
-    private Category category;
+    private ProductCondition condition;
     
     @ManyToMany
     List<Image> images;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -61,12 +61,12 @@ public class Product implements Serializable {
         this.dataSheet = dataSheet;
     }
 
-    public Category getCategory() {
-        return category;
+    public ProductCondition getCondition() {
+        return condition;
     }
 
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setCondition(ProductCondition condition) {
+        this.condition = condition;
     }
 
     public List<Image> getImages() {
@@ -76,4 +76,6 @@ public class Product implements Serializable {
     public void setImages(List<Image> images) {
         this.images = images;
     }
+    
+    
 }

@@ -18,7 +18,6 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import org.hibernate.annotations.Cascade;
@@ -40,16 +39,14 @@ public class Marketplace implements Serializable {
     @ManyToOne
     private Image image;
     
-    @JsonIgnore
     @ManyToMany
     private List<EndPoint> endPoints;
     
-    @JsonIgnore
     @OneToMany 
     @Cascade(value = {CascadeType.DELETE, CascadeType.SAVE_UPDATE})
     private List<MarketplaceAuthorization> authorizations;
     
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd : HH:mm:ss")
     @Temporal(TemporalType.TIMESTAMP)
     private Date link_date;
 

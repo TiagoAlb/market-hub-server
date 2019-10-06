@@ -5,29 +5,27 @@
  */
 package br.com.marketHubServer.controller;
 
-import br.com.marketHubServer.aut.ProfileAut;
 import br.com.marketHubServer.dao.AdDAO;
+import br.com.marketHubServer.dao.CategoryDAO;
+import br.com.marketHubServer.dao.CategoryItemDAO;
 import br.com.marketHubServer.dao.DataSheetDAO;
 import br.com.marketHubServer.dao.DataSheetItemDAO;
+import br.com.marketHubServer.dao.ProductConditionDAO;
 import br.com.marketHubServer.dao.ProductDAO;
-import br.com.marketHubServer.model.AccessToken;
 import br.com.marketHubServer.model.Ad;
+import br.com.marketHubServer.model.CategoryItem;
 import br.com.marketHubServer.model.DataSheet;
 import br.com.marketHubServer.model.DataSheetItem;
-import br.com.marketHubServer.model.MarketplaceAuthorization;
 import br.com.marketHubServer.model.Product;
-import br.com.marketHubServer.model.Profile;
+import br.com.marketHubServer.model.ProductCondition;
 import br.com.marketHubServer.util.Util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.json.JSONArray;
@@ -37,8 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -63,12 +59,34 @@ public class Ads {
     DataSheetDAO dataSheetDAO;
     @Autowired
     DataSheetItemDAO dataSheetItemDAO;
+    @Autowired
+    CategoryDAO categoryDAO;
+    @Autowired
+    CategoryItemDAO categoryItemDAO;
+    @Autowired
+    ProductConditionDAO conditionDAO;
     
     private Util util;
     
     @RequestMapping(path = "/ads", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     public Ad create(@RequestBody Ad ad) throws Exception {
+        Product product = ad.getProduct();
+        product.setCondition(conditionDAO.findById(product.getCondition().getId()).get());
+        DataSheet dataSheet = product.getDataSheet();
+        dataSheet.setItems((List<DataSheetItem>) dataSheetItemDAO.saveAll(dataSheet.getItems()));
+        product.setDataSheet(dataSheetDAO.save(dataSheet));
+        ad.getCategory().setItems((List<CategoryItem>) categoryItemDAO.saveAll(ad.getCategory().getItems()));
+        ad.setCategory(categoryDAO.save(ad.getCategory()));
+        
+        ad.setProduct(productDAO.save(product));
+        
+        return adDAO.save(ad);
+    }
+    
+    @RequestMapping(path = "/ads", method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.OK)
+    public Ad update(@RequestBody Ad ad, @RequestParam(required = false, defaultValue = "0") int step) throws Exception {
         Product product = ad.getProduct();
         DataSheet dataSheet = product.getDataSheet();
         dataSheet.setItems((List<DataSheetItem>) dataSheetItemDAO.saveAll(dataSheet.getItems()));
