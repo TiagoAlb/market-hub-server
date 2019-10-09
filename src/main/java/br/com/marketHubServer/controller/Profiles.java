@@ -288,10 +288,9 @@ public class Profiles {
     }
     
     @RequestMapping(path = "/profiles/{id}/image", method = RequestMethod.PUT)
-    public ResponseEntity<InputStreamResource> insertImage(@PathVariable int id,
+    public ResponseEntity<String> insertImage(@PathVariable int id,
             @RequestParam("file") MultipartFile uploadfiles) throws Exception {
-        Optional<Profile> findById = profileDAO.findById(id);
-        Profile profileUpdate = findById.get();
+        Profile profileUpdate = profileDAO.findById(id).get();
 
         try {
             if (!uploadfiles.getContentType().equals("application/octet-stream")) {
@@ -302,9 +301,9 @@ public class Profiles {
                 image.setImage(uploadfiles.getBytes());
                 profileUpdate.setImage(imageDAO.save(image));
                 profileDAO.save(profileUpdate);
-                return recoverImage(id);
+                return new ResponseEntity<>("Imagem cadastrada com sucesso!", HttpStatus.OK);
             } else {
-                return recoverImage(id);
+                return new ResponseEntity<>("Erro!", HttpStatus.BAD_REQUEST);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
