@@ -24,4 +24,10 @@ public interface MarketplaceAuthorizationDAO extends PagingAndSortingRepository<
                  + "ON profile_marketplaces.profile_id = marketplace_authorization.profile_id "
                  + "WHERE profile_marketplaces.profile_id = :profile_id AND profile_marketplaces.marketplaces_id = :marketplace_id ORDER BY marketplace_authorization.id DESC LIMIT 1", nativeQuery = true)
     public Integer findAuthorizationByProfileAndMarketplace(@Param("profile_id") Integer profile_id, @Param("marketplace_id") Integer marketplace_id);
+    
+    @Query(value = "SELECT marketplace_authorization.id FROM marketplace_authorization "
+                 + "JOIN profile_marketplaces "
+                 + "ON profile_marketplaces.profile_id = marketplace_authorization.profile_id "
+                 + "WHERE profile_marketplaces.profile_id = :profile_id AND profile_marketplaces.marketplaces_id = :marketplace_id AND marketplace_authorization.authorization_code = :code ORDER BY marketplace_authorization.id DESC LIMIT 1", nativeQuery = true)
+    public Integer findAuthorizationByProfileAndMarketplaceAndCode(@Param("profile_id") Integer profile_id, @Param("marketplace_id") Integer marketplace_id, @Param("code") String code);
 }

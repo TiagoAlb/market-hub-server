@@ -31,6 +31,9 @@ public class AccessToken implements Serializable {
 
     @Column(length = 20)
     private String token_type;
+    
+    @Column(length = 20)
+    private String user_id;
 
     private Integer expires_in;
 
@@ -62,6 +65,14 @@ public class AccessToken implements Serializable {
 
     public void setToken_type(String token_type) {
         this.token_type = token_type;
+    }
+
+    public String getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
     }
 
     public Integer getExpires_in() {
